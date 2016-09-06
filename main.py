@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-# import numpy
 import timeit
 
 from dataflow import Flow
 
 
 def chrono(f):
+    """Some helper to time function execution"""
 
     N = 100
     mu_time = 0
