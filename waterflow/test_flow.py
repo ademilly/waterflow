@@ -14,6 +14,23 @@ class TestFlow:
         assert hasattr(flow, 'chain')
         assert flow.data is None
 
+    def test_filter(self, tmpdir_factory):
+        """Test filter registering"""
+
+        p = tmpdir_factory.mktemp("data").join("test.csv")
+
+        p.write('\n'.join(
+            [','.join(['first', 'line'])] + [
+                ','.join([str(i) for i in range(5)]) for _ in range(10)
+            ] + [','.join(['last', 'line'])]))
+
+        flow = Flow().from_file(p.open()).filter(
+            lambda x: 'line' not in x
+        )
+
+        assert flow.chain[0].type == 'FLOW::FILTER'
+        assert flow.batch(1)[0] == ['0', '1', '2', '3', '4']
+
     def test_map(self, tmpdir_factory):
         """Test map registering"""
 
