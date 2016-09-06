@@ -147,4 +147,4 @@ class Flow(object):
     def __repr__(self):
         """Evaluate whole dataset and return string representation"""
 
-        return '\n'.join(self.eval())
+        return '\n'.join(self.eval()) if self.data is not None else 'None'
