@@ -36,20 +36,29 @@ class TestFlow:
 
         p = tmpdir_factory.mktemp("data").join("test.csv")
 
-        p.write('\n'.join([
-            ','.join([str(i) for i in range(5)]) for _ in range(10)
-        ]))
+        p.write('\n'.join(
+            [','.join([str(i) for i in range(5)]) for _ in range(10)]
+        ))
 
-        assert Flow().from_file(p.open()).map(
+        flow = Flow().from_file(p.open()).map(
             lambda x: [float(_) for _ in x]
-        ).eval()[0] == [0, 1, 2, 3, 4]
+        ).map(
+            lambda x: [2 * _ for _ in x]
+        )
 
-        assert Flow().from_file(p.open()).map(
+        assert flow.chain[0].type == 'FLOW::MAP'
+        assert flow.batch(1)[0] == [0, 2, 4, 6, 8]
+
+    def test_reduce(self, tmpdir_factory):
+
+        p = tmpdir_factory.mktemp("data").join("test.csv")
+
+        p.write('\n'.join(
+            [','.join([str(i) for i in range(5)]) for _ in range(10)]
+        ))
+
+        flow = Flow().from_file(p.open()).map(
             lambda x: [float(_) for _ in x]
-        ).map(lambda x: [2 * _ for _ in x]).eval()[0] == [0, 2, 4, 6, 8]
+        ).map(lambda x: sum(x))
 
-        assert Flow().from_file(p.open()).map(
-            lambda x: 1
-        ).reduce(
-            lambda a, b: a + b
-        ) == 10
+        assert flow.reduce(lambda a, b: a + b) == 100
