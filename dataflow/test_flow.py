@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
+
 from flow import Flow
 
 
 class TestFlow:
 
     def test_init(self):
+        """Test initialization"""
 
         flow = Flow()
         assert hasattr(flow, 'data')
@@ -12,6 +15,8 @@ class TestFlow:
         assert flow.data is None
 
     def test_map(self, tmpdir_factory):
+        """Test map registering"""
+
         p = tmpdir_factory.mktemp("data").join("test.csv")
 
         p.write('\n'.join([
