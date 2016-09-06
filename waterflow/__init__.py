@@ -6,6 +6,6 @@ class:
         and do machine learning with it
 """
 
-from flow import Flow
+from flow import Flow, Action
 
-__all__ = [Flow]
+__all__ = [Flow, Action]

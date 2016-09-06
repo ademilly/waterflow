@@ -31,6 +31,8 @@ def read_file(fin, sep, line_terminator):
     line_terminator (string) -- line terminator substring
     """
 
+    fin.seek(0)
+
     for line in fin:
         yield line.replace('"', '').replace(line_terminator, '').split(sep)
 
@@ -144,7 +146,14 @@ class Flow(object):
 
         return self
 
+    def reload(self):
+        """Renew the self.data generator"""
+
+        self.data = self.source[0](*self.source[1:])
+
+        return self
+
     def __repr__(self):
         """Evaluate whole dataset and return string representation"""
 
-        return '\n'.join(self.eval())
+        return '\n'.join(self.eval()) if self.data is not None else 'None'
