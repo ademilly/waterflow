@@ -1,6 +1,9 @@
-#Full predictive chain
+#Waterflow
 
-##In one go:
+Waterflow package provides a data analysis pipeline framework
+for data transformation and machine learning
+
+##In one go
 - read data files (possibly massive)
 - add transformations and new features
 - train a model
