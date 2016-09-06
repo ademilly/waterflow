@@ -31,6 +31,8 @@ def read_file(fin, sep, line_terminator):
     line_terminator (string) -- line terminator substring
     """
 
+    fin.seek(0)
+
     for line in fin:
         yield line.replace('"', '').replace(line_terminator, '').split(sep)
 
@@ -141,6 +143,13 @@ class Flow(object):
 
         for a in self.chain:
             self.data = apply_action(self.data, a)
+
+        return self
+
+    def reload(self):
+        """Renew the self.data generator"""
+
+        self.data = self.source[0](*self.source[1:])
 
         return self
 

@@ -50,6 +50,7 @@ class TestFlow:
         assert flow.batch(1)[0] == [0, 2, 4, 6, 8]
 
     def test_reduce(self, tmpdir_factory):
+        """Test reduce"""
 
         p = tmpdir_factory.mktemp("data").join("test.csv")
 
@@ -62,3 +63,17 @@ class TestFlow:
         ).map(lambda x: sum(x))
 
         assert flow.reduce(lambda a, b: a + b) == 100
+
+    def test_reload(self, tmpdir_factory):
+        """Test reloading"""
+
+        p = tmpdir_factory.mktemp("data").join("test.csv")
+
+        p.write('\n'.join(
+            [','.join([str(i) for i in range(5)]) for _ in range(10)]
+        ))
+
+        flow = Flow().from_file(p.open()).map(lambda x: 1)
+
+        assert flow.reduce(lambda a, b: a + b) == 10
+        assert flow.reload().reduce(lambda a, b: a + b) == 10
