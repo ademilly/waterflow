@@ -1,10 +1,16 @@
 language: python
 python:
-    - "2.7"
-    - "pypy"
-# command to install dependencies
+- '2.7'
 install:
-    - pip install .
-    - pip install -r requirements.txt
-# command to run tests
+- pip install .
+- pip install -r requirements.txt
 script: pytest waterflow/
+deploy:
+  provider: pypi
+  user: ademilly
+  password:
+    secure: gkwcvKa03g61LYW1f22gLeOZveeA21QRNZcQEeWGxN2g2y+WPWG/vr+PZsYw+YNn6L11jbrZPBkNrj86ojlNHZstvPbM6BjU/OTZJAs4/VFG7jLs0nhOL7bIkynuJGYVMXYOHH0LFM9huT1FNYUao9DxKlhncy4Hn5CRqqrijBJu6mxjOY0IYNTHkV8oGGLRZ794G8YfyALEejG2noEQg8smtsREZdsI6thTF68ouNTrEkAIsZ2hfZ7VaxuqwPJeUbDEHmpam+XwEV2sY3tE+jBxR+er9Y1dUQi/6IiHkEK5WMimmPbdrtkQdYE/nIFhf3Jc9gpFCaGxQvtA+NQVhmVe4aqLIaO4bQsoj2xEB/0XpSKAS87Hcv3byjDlmm1TujcnRHhavsEYlMHwXcDvKVg4/FD66AZTu2zC6lDveNmDg1C1/Fhf4Rt34F3O/E1nx/3JvueHtaGhJnG6ds4tM2CcVhFHl+1D32ZnGNrbOJxcLsuYyIsw2WG1GDc80AhWSMRRZAP42mk9/RcGDJKG6MvoU2Q/8wpPzAVNAteUUQd5NohHMYEOEi3Z+yrJZ/mbObLRtz2LKS7RGufd8ExsuWJ91+ysLdl4ZKsn7FfR8cSwxFj7rWZC+YBa5EZcZi1VNlYd23tG7S7HLfkWQwr/TBlbAm0dgkU2OrHFEP33h2Y=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: ademilly/waterflow
