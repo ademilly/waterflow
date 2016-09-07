@@ -4,7 +4,7 @@ from distutils.core import setup
 setup(
     name='waterflow',
     packages=['waterflow'],
-    version='0.2',
+    version='0.21',
     description='Dataflow package provides a data analysis pipeline' +
     'framework for data transformation and machine learning',
     author='Aurélien Demilly',
