@@ -1,0 +1,2 @@
+include versioneer.py
+include waterflow/_version.py

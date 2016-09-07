@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from distutils.core import setup
+
+import versioneer
+
 setup(
     name='waterflow',
     packages=['waterflow'],
-    version='0.21',
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     description='Dataflow package provides a data analysis pipeline' +
     'framework for data transformation and machine learning',
     author='Aurélien Demilly',
