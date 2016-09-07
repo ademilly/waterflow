@@ -1,5 +1,7 @@
 #Waterflow
 
+[![Build Status](https://travis-ci.org/ademilly/waterflow.svg?branch=master)](https://travis-ci.org/ademilly/waterflow)
+
 Waterflow package provides a data analysis pipeline framework
 for data transformation and machine learning
 
