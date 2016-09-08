@@ -1,3 +1,6 @@
+numpy==1.11.1
 py==1.4.31
 pytest==3.0.2
-versioneer==0.16
+scikit-learn==0.17.1
+scipy==0.18.0
+sklearn==0.0

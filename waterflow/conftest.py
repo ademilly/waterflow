@@ -17,11 +17,10 @@ def string_dataset(tmpdir_factory):
 def numeric_dataset(tmpdir_factory):
     p = tmpdir_factory.mktemp("data").join("test.csv")
 
-    p.write('\n'.join([
-        ','.join([
-            ','.join([i for i in range(5)]) for _ in range(10)
-        ])
-    ]))
+    p.write('\n'.join(
+        [
+            ','.join([str(i) for i in range(5)]) for _ in range(10)
+        ]))
 
     return p
 

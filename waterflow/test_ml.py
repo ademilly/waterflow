@@ -1,6 +1,5 @@
 from sklearn.naive_bayes import GaussianNB, BernoulliNB
 
-import conftest
 from ml import ML
 
 
@@ -22,17 +21,17 @@ class TestML:
         assert hasattr(ml.clf, 'fit')
         assert hasattr(ml.clf, 'predict_proba')
 
-    def test_fit(self):
+    def test_fit(self, numerics):
 
-        X = conftest.numerics()
+        X = numerics
         y = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
 
         ml = ML(classifier=GaussianNB())
         assert ml.fit(X, y) == ml
 
-    def test_predict(self):
+    def test_predict(self, numerics):
 
-        X = conftest.numerics()
+        X = numerics
         y = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
 
         ml = ML(classifier=GaussianNB())
@@ -42,9 +41,9 @@ class TestML:
         assert 'probabilities' in ml.meta.keys()
         assert len(ml.meta['probabilities']) == 10
 
-    def test_logloss(self):
+    def test_logloss(self, booleans):
 
-        X = conftest.booleans()
+        X = booleans
         y = [1, 0, 0, 1]
 
         ml = ML(classifier=BernoulliNB())
