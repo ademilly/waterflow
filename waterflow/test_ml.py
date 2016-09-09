@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from sklearn.naive_bayes import GaussianNB, BernoulliNB
 
 from ml import ML

@@ -26,6 +26,21 @@ def numeric_dataset(tmpdir_factory):
 
 
 @pytest.fixture(scope="module")
+def boolean_dataset(tmpdir_factory):
+    p = tmpdir_factory.mktemp("data").join("test.csv")
+
+    p.write('\n'.join(
+        [
+            "0, 0, 1",
+            "0, 1, 0",
+            "1, 0, 0",
+            "1, 1, 1"
+        ]))
+
+    return p
+
+
+@pytest.fixture(scope="module")
 def numerics():
 
     return [[i for i in range(5)] for _ in range(10)]

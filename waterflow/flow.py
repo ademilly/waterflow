@@ -2,6 +2,8 @@
 from collections import namedtuple
 import itertools
 
+from ml import ML
+
 
 """Action namedtuple used to differentiate map transformation from filter op"""
 Action = namedtuple('action', ['type', 'f'])
@@ -59,6 +61,9 @@ class Flow(object):
         self.data = None
         self.source = None
         self.chain = []
+
+        self.header = []
+        self.clfs = {}
 
     def from_csv(self, path, sep=',', line_terminator='\n'):
         """Hook Flow to disk csv source
@@ -159,3 +164,34 @@ class Flow(object):
         return '\n'.join([
             str(_) for _ in self.eval()
         ]) if self.data is not None else 'None'
+
+    def tensorize(self, target=''):
+
+        M = self.eval()
+        if target != '':
+            return [
+                [x for i, x in enumerate(_) if i != self.header.index(target)]
+                for _ in M
+            ], [
+                [
+                    x for i, x in enumerate(_)
+                    if i == self.header.index(target)
+                ][0] for _ in M
+            ]
+        else:
+            return M
+
+    def header_is(self, names=[]):
+
+        self.header = names
+        return self
+
+    def fit_with(self, classifier, name='', target=''):
+
+        X, y = self.tensorize(target)
+        clf = ML(classifier)
+
+        clf.fit(X, y)
+        self.clfs[name] = clf
+
+        return self
