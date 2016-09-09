@@ -1,10 +1,14 @@
 language: python
 python:
-- '2.7'
-- pypy
+    - '2.7'
+    - pypy
+virtualenv:
+  system_site_packages: true
+before_install:
+    - sudo apt-get install -qq python-numpy python-scipy
 install:
-- pip install .
-- pip install -r requirements.txt
+    - pip install .
+    - pip install -r requirements.txt
 script: pytest waterflow/
 deploy:
   provider: pypi
