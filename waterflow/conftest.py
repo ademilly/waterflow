@@ -19,7 +19,7 @@ def numeric_dataset(tmpdir_factory):
 
     p.write('\n'.join(
         [
-            ','.join([str(i) for i in range(5)]) for _ in range(10)
+            ','.join([str(_)] + [str(i) for i in range(5)]) for _ in range(10)
         ]))
 
     return p

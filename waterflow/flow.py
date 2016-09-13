@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import namedtuple
 import itertools
+import numpy
 
 from ml import ML
 
@@ -55,15 +56,19 @@ def apply_action(data, action):
 
 class Flow(object):
 
-    def __init__(self):
+    def __init__(self, seed=1, flow=None):
         """Init Flow object"""
 
-        self.data = None
-        self.source = None
-        self.chain = []
+        self.data = None if flow is None else flow.regenerate_generator()
+        self.source = None if flow is None else flow.source
+        self.chain = [] if flow is None else list(flow.chain)
 
-        self.header = []
-        self.clfs = {}
+        self.header = [] if flow is None else list(flow.header)
+        self.clfs = {} if flow is None else dict(flow.clfs)
+
+        self.seed = seed if flow is None else flow.seed
+
+        self.random_state = numpy.random.RandomState(self.seed)
 
     def from_csv(self, path, sep=',', line_terminator='\n'):
         """Hook Flow to disk csv source
@@ -151,10 +156,16 @@ class Flow(object):
 
         return self
 
-    def reload(self):
+    def regenerate_generator(self):
         """Renew the self.data generator"""
 
-        self.data = self.source[0](*self.source[1:])
+        return self.source[0](*self.source[1:])
+
+    def reload(self):
+        """Renew self.data and self.random_state"""
+
+        self.random_state = numpy.random.RandomState(self.seed)
+        self.data = self.regenerate_generator()
 
         return self
 
@@ -166,6 +177,7 @@ class Flow(object):
         ]) if self.data is not None else 'None'
 
     def tensorize(self, target=''):
+        """Return data and target column if the latter is given"""
 
         M = self.eval()
         if target != '':
@@ -182,11 +194,13 @@ class Flow(object):
             return M
 
     def header_is(self, names=[]):
+        """Set header"""
 
         self.header = names
         return self
 
     def fit_with(self, classifier, name='', target=''):
+        """Fit classifier to data"""
 
         X, y = self.tensorize(target)
         clf = ML(classifier)

@@ -36,7 +36,7 @@ class TestFlow:
         )
 
         assert flow.chain[0].type == 'FLOW::MAP'
-        assert flow.batch(1)[0] == [0, 2, 4, 6, 8]
+        assert flow.batch(1)[0] == [0, 0, 2, 4, 6, 8]
 
     def test_reduce(self, numeric_dataset):
         """Test reduce"""
@@ -45,7 +45,7 @@ class TestFlow:
             lambda x: [float(_) for _ in x]
         ).map(lambda x: sum(x))
 
-        assert flow.reduce(lambda a, b: a + b) == 100
+        assert flow.reduce(lambda a, b: a + b) == 145
 
     def test_reload(self, numeric_dataset):
         """Test reloading"""
@@ -54,6 +54,34 @@ class TestFlow:
 
         assert flow.reduce(lambda a, b: a + b) == 10
         assert flow.reload().reduce(lambda a, b: a + b) == 10
+
+    def test_split_train_test(self, numeric_dataset):
+        """Test split"""
+
+        flow = Flow(seed=42)
+
+        flow = flow.from_file(numeric_dataset.open()).map(
+            lambda x: [float(_) for _ in x]
+        )
+
+        flow_left = Flow(flow=flow).map(
+            lambda x: x + [
+                flow_left.random_state.choice([0, 1], p=[0.3, 0.7])
+            ]
+        ).filter(
+            lambda x: x[-1] == 0
+        )
+
+        flow_right = Flow(flow=flow).map(
+            lambda x: x + [
+                flow_right.random_state.choice([0, 1], p=[0.3, 0.7])
+            ]
+        ).filter(
+            lambda x: x[-1] == 1
+        )
+
+        assert flow_left.map(lambda x: 1).reduce(lambda a, b: a + b) == 3
+        assert flow_right.map(lambda x: 1).reduce(lambda a, b: a + b) == 7
 
     def test_fit(self, boolean_dataset):
         """Test fit"""
