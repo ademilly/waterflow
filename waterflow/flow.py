@@ -199,13 +199,27 @@ class Flow(object):
         self.header = names
         return self
 
+    def register_ml(self, ml):
+
+        self.clfs[
+            ml.meta['name']
+        ] = ml
+
+        return self
+
     def fit_with(self, classifier, name='', target=''):
         """Fit classifier to data"""
 
         X, y = self.tensorize(target)
-        clf = ML(classifier)
+        clf = ML(classifier, name)
 
         clf.fit(X, y)
-        self.clfs[name] = clf
+        return self.register_ml(clf)
+
+    def score_with(self, name='', target=''):
+
+        X, y = self.tensorize(target)
+
+        self.clfs[name].log_loss(X, y)
 
         return self

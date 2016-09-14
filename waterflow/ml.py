@@ -3,7 +3,7 @@ from sklearn.metrics import log_loss
 
 class ML(dict):
 
-    def __init__(self, classifier=None):
+    def __init__(self, classifier=None, name=''):
         """Init ML object
 
         Keyword arguments:
@@ -11,7 +11,9 @@ class ML(dict):
         """
 
         self.clf = classifier
-        self.meta = {}
+        self.meta = {
+            'name': name
+        }
 
     def fit(self, X, y):
         """Fit classifier to X, y
