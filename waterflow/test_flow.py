@@ -58,27 +58,15 @@ class TestFlow:
     def test_split_train_test(self, numeric_dataset):
         """Test split"""
 
+        split_rate = 0.3
         flow = Flow(seed=42)
 
         flow = flow.from_file(numeric_dataset.open()).map(
             lambda x: [float(_) for _ in x]
         )
 
-        flow_left = Flow(flow=flow).map(
-            lambda x: x + [
-                flow_left.random_state.choice([0, 1], p=[0.3, 0.7])
-            ]
-        ).filter(
-            lambda x: x[-1] == 0
-        )
-
-        flow_right = Flow(flow=flow).map(
-            lambda x: x + [
-                flow_right.random_state.choice([0, 1], p=[0.3, 0.7])
-            ]
-        ).filter(
-            lambda x: x[-1] == 1
-        )
+        flow_left = Flow(flow=flow).split(split_rate, on='left')
+        flow_right = Flow(flow=flow).split(split_rate, on='right')
 
         assert flow_left.map(lambda x: 1).reduce(lambda a, b: a + b) == 3
         assert flow_right.map(lambda x: 1).reduce(lambda a, b: a + b) == 7

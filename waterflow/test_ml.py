@@ -13,7 +13,7 @@ class TestML:
 
         assert hasattr(ml, 'clf')
         assert ml.clf is None
-        assert ml.meta == {}
+        assert ml.meta == {'name': ''}
 
     def test_init_with_object(self):
 
