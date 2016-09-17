@@ -169,6 +169,20 @@ class Flow(object):
 
         return self
 
+    def split(self, rate=0.5, on='left'):
+        """Split data long rate and select one part
+
+        Keyword arguments:
+        rate    (float) -- number between 0 and 1 splitting data
+        on      ('left' or 'right') -- choose which part of the split to take
+        """
+
+        self.map(lambda x: x + [
+            self.random_state.choice(['left', 'right'], p=[rate, 1.0 - rate])
+        ]).filter(lambda x: x[-1] == on).map(lambda x: x[:-1])
+
+        return self
+
     def __repr__(self):
         """Evaluate whole dataset and return string representation"""
 
@@ -199,7 +213,15 @@ class Flow(object):
         self.header = names
         return self
 
+    def register_clfs(self, clfs):
+        """Register clfs dict from another flow"""
+
+        self.clfs.update(clfs)
+
+        return self
+
     def register_ml(self, ml):
+        """Register a new ML object in flow"""
 
         self.clfs[
             ml.meta['name']
@@ -217,6 +239,7 @@ class Flow(object):
         return self.register_ml(clf)
 
     def score_with(self, name='', target=''):
+        """Score data with clf named name"""
 
         X, y = self.tensorize(target)
 
