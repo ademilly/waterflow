@@ -213,10 +213,12 @@ class Flow(object):
         self.header = names
         return self
 
-    def register_clfs(self, clfs):
-        """Register clfs dict from another flow"""
+    def register_clf(self, ml):
+        """Register classifier from another flow"""
 
-        self.clfs.update(clfs)
+        self.clfs[
+            ml.meta['name']
+        ] = ML(classifier=ml.clf, name=ml.meta['name'])
 
         return self
 

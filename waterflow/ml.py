@@ -44,10 +44,18 @@ class ML(dict):
         y   ([entries] vector) -- target
         """
 
-        if 'probabilities' not in self.meta.keys():
-            self.predict_proba(X)
+        self.predict_proba(X)
 
         self.meta['log_loss'] = log_loss(
             y, self.meta['probabilities']
         )
         return self
+
+    def __repr__(self):
+
+        return str(
+            {
+                'classifier': self.clf,
+                'meta': self.meta
+            }
+        )
