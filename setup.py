@@ -16,4 +16,7 @@ setup(
     url="https://github.com/ademilly/dataflow",
     keywords=['data science', 'data analysis', 'machine learning'],
     classifiers=[],
+    install_requires=[
+        'cloudpickle',
+    ],
 )
