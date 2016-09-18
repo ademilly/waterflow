@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from sklearn.naive_bayes import BernoulliNB
-
 from flow import Flow
 
 
@@ -70,14 +68,3 @@ class TestFlow:
 
         assert flow_left.map(lambda x: 1).reduce(lambda a, b: a + b) == 3
         assert flow_right.map(lambda x: 1).reduce(lambda a, b: a + b) == 7
-
-    def test_fit(self, boolean_dataset):
-        """Test fit"""
-
-        flow = Flow().from_file(boolean_dataset.open()).map(
-            lambda x: [int(_) for _ in x]
-        ).header_is(['var_0', 'var_1', 'target']) \
-            .fit_with(BernoulliNB(), name='bNB', target='target').reload()
-
-        assert len(flow.batch(1)[0]) == len(flow.header)
-        assert 'bNB' in flow.clfs.keys()
