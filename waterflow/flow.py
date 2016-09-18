@@ -252,12 +252,12 @@ class Flow(object):
         clf.fit(X, y)
         return self.register_ml(clf)
 
-    def score_with(self, name='', target=''):
-        """Score data with clf named name"""
+    def score_with(self, name, target, metric_function, metric_name):
+        """Score data with clf named name using metric"""
 
         X, y = self.tensorize(target)
 
-        self.clfs[name].log_loss(X, y)
+        self.clfs[name].metric(X, y, metric_function, metric_name)
 
         return self
 

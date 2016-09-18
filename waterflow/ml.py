@@ -1,4 +1,4 @@
-from sklearn.metrics import log_loss
+# -*- coding: utf-8 -*-
 
 
 class ML(dict):
@@ -36,19 +36,19 @@ class ML(dict):
         self.meta['probabilities'] = self.clf.predict_proba(X)
         return self
 
-    def log_loss(self, X, y):
-        """Evaluate log_loss metric from X and y
+    def metric(self, X, y, function, name):
+        """Evaluate metric name from X and y with function
 
         Keyword arguments:
-        X   ([entries x features] matrix) -- data
-        y   ([entries] vector) -- target
+        X           ([entries x features] matrix) -- data
+        y           ([entries] vector) -- target
+        function    ((y_true, y_pred) => value) -- function evaluating metric
+        name        (string) -- name for metric
         """
 
         self.predict_proba(X)
 
-        self.meta['log_loss'] = log_loss(
-            y, self.meta['probabilities']
-        )
+        self.meta[name] = function(y, self.meta['probabilities'])
         return self
 
     def __repr__(self):
