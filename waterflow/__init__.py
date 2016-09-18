@@ -6,11 +6,11 @@ class:
         and do machine learning with it
 """
 
-from flow import Flow, Action
+from flow import Flow
 from ml import ML
 
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = [Flow, Action, ML]
+__all__ = [Flow, ML]

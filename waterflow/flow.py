@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-from collections import namedtuple
+
 import itertools
 import numpy
+import cloudpickle as pickle
 
 from ml import ML
-
-
-"""Action namedtuple used to differentiate map transformation from filter op"""
-Action = namedtuple('action', ['type', 'f'])
+from action import Action
 
 
 def read_csv(path, sep, line_terminator):
@@ -38,20 +36,6 @@ def read_file(fin, sep, line_terminator):
 
     for line in fin:
         yield line.replace('"', '').replace(line_terminator, '').split(sep)
-
-
-def apply_action(data, action):
-    """Compose successive generators from ordered map and filter transformation
-    """
-
-    if action.type == 'FLOW::MAP':
-        return (action.f(_) for _ in data)
-
-    elif action.type == 'FLOW::FILTER':
-        return (_ for _ in data if action.f(_))
-
-    else:
-        return data
 
 
 class Flow(object):
@@ -148,11 +132,38 @@ class Flow(object):
 
         return list(itertools.islice(self.flow().data, size))
 
+    def apply_action(self, data, action):
+        """Compose successive generators from ordered map and filter transformation
+        """
+
+        if action.type == 'FLOW::MAP':
+            return (action.f(_) for _ in data)
+
+        elif action.type == 'FLOW::FILTER':
+            return (_ for _ in data if action.f(_))
+
+        elif action.type == 'FLOW::SPLIT':
+            for a in [Action(
+                'FLOW::MAP',
+                lambda x: x + [
+                    self.random_state.choice(
+                        ['left', 'right'],
+                        p=[action.f[0], 1.0 - action.f[0]]
+                    )
+                ]), Action('FLOW::FILTER', lambda x: x[-1] == action.f[1]),
+                Action('FLOW::MAP', lambda x: x[:-1])
+            ]:
+                data = self.apply_action(data, a)
+            return data
+
+        else:
+            return data
+
     def flow(self):
         """Compose generator from successive registered actions"""
 
         for a in self.chain:
-            self.data = apply_action(self.data, a)
+            self.data = self.apply_action(self.data, a)
 
         return self
 
@@ -177,9 +188,10 @@ class Flow(object):
         on      ('left' or 'right') -- choose which part of the split to take
         """
 
-        self.map(lambda x: x + [
-            self.random_state.choice(['left', 'right'], p=[rate, 1.0 - rate])
-        ]).filter(lambda x: x[-1] == on).map(lambda x: x[:-1])
+        self.chain += [Action('FLOW::SPLIT', (rate, on))]
+        # self.map(lambda x: x + [
+        #     self.random_state.choice(['left', 'right'], p=[rate, 1.0 - rate])
+        # ]).filter(lambda x: x[-1] == on).map(lambda x: x[:-1])
 
         return self
 
@@ -246,5 +258,25 @@ class Flow(object):
         X, y = self.tensorize(target)
 
         self.clfs[name].log_loss(X, y)
+
+        return self
+
+    def save(self, pickle_path):
+
+        with open(pickle_path, 'wb') as fout:
+            pickle.dump((
+                self.source, self.chain, self.header, self.clfs, self.seed
+            ), fout)
+
+        return self
+
+    def load(self, pickle_path):
+
+        with open(pickle_path, 'rb') as fin:
+            obj = pickle.load(fin)
+
+            self.source, self.chain, self.header, self.clfs, self.seed = obj
+
+        self.reload()
 
         return self
