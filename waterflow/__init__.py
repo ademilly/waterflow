@@ -8,9 +8,10 @@ class:
 
 from flow import Flow
 from ml import ML
+from source import Source
 
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = [Flow, ML]
+__all__ = [Flow, ML, Source]

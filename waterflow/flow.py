@@ -13,7 +13,7 @@ class Flow(object):
     def __init__(self, seed=1, flow=None):
         """Init Flow object"""
 
-        self.data = None if flow is None else flow.regenerate_generator()
+        self.data = None if flow is None else flow.source.read()
         self.source = None if flow is None else flow.source
         self.chain = [] if flow is None else list(flow.chain)
 
@@ -117,16 +117,11 @@ class Flow(object):
 
         return self
 
-    def regenerate_generator(self):
-        """Renew the self.data generator"""
-
-        return self.source[0](*self.source[1:])
-
     def reload(self):
         """Renew self.data and self.random_state"""
 
         self.random_state = numpy.random.RandomState(self.seed)
-        self.data = self.regenerate_generator()
+        self.data = self.source.read()
 
         return self
 

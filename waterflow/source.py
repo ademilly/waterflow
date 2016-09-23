@@ -6,9 +6,9 @@ class Source(object):
     def __init__(self, **kwargs):
         """Init Source object from dict"""
 
-        self.path = kwargs['path']
-        self.sep = kwargs['sep']
-        self.line_terminator = kwargs['line_terminator']
+        self.path = kwargs.get('path', None)
+        self.sep = kwargs.get('sep', ',')
+        self.line_terminator = kwargs.get('line_terminator', '\n')
 
         self.fin = kwargs['fin'] if 'fin' in kwargs.keys() else open(self.path)
 
