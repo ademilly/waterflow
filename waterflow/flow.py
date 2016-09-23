@@ -65,6 +65,18 @@ class Flow(object):
 
         return self
 
+    def split(self, rate=0.5, on='left'):
+        """Split data long rate and select one part
+
+        Keyword arguments:
+        rate    (float) -- number between 0 and 1 splitting data
+        on      ('left' or 'right') -- choose which part of the split to take
+        """
+
+        self.chain += [Action('FLOW::SPLIT', (rate, on))]
+
+        return self
+
     def eval(self):
         """Evaluate dataset
 
@@ -84,62 +96,11 @@ class Flow(object):
 
         return list(itertools.islice(self.run().data, size))
 
-    def apply_action(self, data, action):
-        """Compose successive generators
-        from ordered map and filter transformation
-        """
-
-        if action.type == 'FLOW::MAP':
-            return (action.f(_) for _ in data)
-
-        elif action.type == 'FLOW::FILTER':
-            return (_ for _ in data if action.f(_))
-
-        elif action.type == 'FLOW::SPLIT':
-            for a in [Action(
-                'FLOW::MAP',
-                lambda x: x + [
-                    self.random_state.choice(
-                        ['left', 'right'],
-                        p=[action.f[0], 1.0 - action.f[0]]
-                    )
-                ]), Action('FLOW::FILTER', lambda x: x[-1] == action.f[1]),
-                Action('FLOW::MAP', lambda x: x[:-1])
-            ]:
-                data = self.apply_action(data, a)
-            return data
-
-        elif action.type == 'FLOW::REDUCE':
-            return [reduce(action.f, data)]
-
-        else:
-            return data
-
-    def run(self):
-        """Compose generator from successive registered actions"""
-
-        for a in self.chain:
-            self.data = self.apply_action(self.data, a)
-
-        return self
-
     def reload(self):
         """Renew self.data and self.random_state"""
 
         self.random_state = numpy.random.RandomState(self.seed)
         self.data = self.source.read()
-
-        return self
-
-    def split(self, rate=0.5, on='left'):
-        """Split data long rate and select one part
-
-        Keyword arguments:
-        rate    (float) -- number between 0 and 1 splitting data
-        on      ('left' or 'right') -- choose which part of the split to take
-        """
-
-        self.chain += [Action('FLOW::SPLIT', (rate, on))]
 
         return self
 
@@ -206,6 +167,45 @@ class Flow(object):
         X, y = self.tensorize(target)
 
         self.clfs[name].metric(X, y, metric_function, metric_name)
+
+        return self
+
+    def apply_action(self, data, action):
+        """Compose successive generators
+        from ordered map and filter transformation
+        """
+
+        if action.type == 'FLOW::MAP':
+            return (action.f(_) for _ in data)
+
+        elif action.type == 'FLOW::FILTER':
+            return (_ for _ in data if action.f(_))
+
+        elif action.type == 'FLOW::SPLIT':
+            for a in [Action(
+                'FLOW::MAP',
+                lambda x: x + [
+                    self.random_state.choice(
+                        ['left', 'right'],
+                        p=[action.f[0], 1.0 - action.f[0]]
+                    )
+                ]), Action('FLOW::FILTER', lambda x: x[-1] == action.f[1]),
+                Action('FLOW::MAP', lambda x: x[:-1])
+            ]:
+                data = self.apply_action(data, a)
+            return data
+
+        elif action.type == 'FLOW::REDUCE':
+            return [reduce(action.f, data)]
+
+        else:
+            return data
+
+    def run(self):
+        """Compose generator from successive registered actions"""
+
+        for a in self.chain:
+            self.data = self.apply_action(self.data, a)
 
         return self
 
