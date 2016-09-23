@@ -110,7 +110,7 @@ class Flow(object):
             return data
 
         elif action.type == 'FLOW::REDUCE':
-            return reduce(action.f, data)
+            return [reduce(action.f, data)]
 
         else:
             return data

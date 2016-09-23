@@ -44,7 +44,7 @@ class TestFlow:
             lambda x: [float(_) for _ in x]
         ).map(lambda x: sum(x))
 
-        assert flow.reduce(lambda a, b: a + b) == 145
+        assert flow.reduce(lambda a, b: a + b).eval() == [145]
 
     def test_reload(self, numeric_dataset):
         """Test reloading"""
@@ -53,8 +53,8 @@ class TestFlow:
             lambda x: 1
         )
 
-        assert flow.reduce(lambda a, b: a + b) == 10
-        assert flow.reload().reduce(lambda a, b: a + b) == 10
+        assert flow.reduce(lambda a, b: a + b).eval() == [10]
+        assert flow.reload().reduce(lambda a, b: a + b).eval() == [10]
 
     def test_split_train_test(self, numeric_dataset):
         """Test split"""
@@ -69,5 +69,9 @@ class TestFlow:
         flow_left = Flow(flow=flow).split(split_rate, on='left')
         flow_right = Flow(flow=flow).split(split_rate, on='right')
 
-        assert flow_left.map(lambda x: 1).reduce(lambda a, b: a + b) == 3
-        assert flow_right.map(lambda x: 1).reduce(lambda a, b: a + b) == 7
+        assert flow_left.map(lambda x: 1).reduce(
+            lambda a, b: a + b
+        ).eval() == [3]
+        assert flow_right.map(lambda x: 1).reduce(
+            lambda a, b: a + b
+        ).eval() == [7]
