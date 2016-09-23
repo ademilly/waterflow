@@ -8,36 +8,6 @@ from ml import ML
 from action import Action
 
 
-def read_csv(path, sep, line_terminator):
-    """Yield a value from a csv file on disk
-
-    Keyword arguments:
-    path            (string) -- path to file
-    sep             (string) -- separator substring
-    line_terminator (string) -- line terminator substring
-    """
-
-    with open(path) as fin:
-
-        for line in fin:
-            yield line.replace('"', '').replace(line_terminator, '').split(sep)
-
-
-def read_file(fin, sep, line_terminator):
-    """Yield a value from a csv file in memory
-
-    Keyword arguments:
-    path            (string) -- path to file
-    sep             (string) -- separator substring
-    line_terminator (string) -- line terminator substring
-    """
-
-    fin.seek(0)
-
-    for line in fin:
-        yield line.replace('"', '').replace(line_terminator, '').split(sep)
-
-
 class Flow(object):
 
     def __init__(self, seed=1, flow=None):
@@ -54,31 +24,11 @@ class Flow(object):
 
         self.random_state = numpy.random.RandomState(self.seed)
 
-    def from_csv(self, path, sep=',', line_terminator='\n'):
-        """Hook Flow to disk csv source
+    def from_source(self, source):
+        """Set data source"""
 
-        Keyword arguments:
-        path            (string) -- path to file
-        sep             (string) -- separator substring
-        line_terminator (string) -- line terminator substring
-        """
-
-        self.data = read_csv(path, sep, line_terminator)
-        self.source = (read_csv, path, sep, line_terminator)
-
-        return self
-
-    def from_file(self, fin, sep=',', line_terminator='\n'):
-        """Hook Flow to memory csv source
-
-        Keyword arguments:
-        path            (string) -- path to file
-        sep             (string) -- separator substring
-        line_terminator (string) -- line terminator substring
-        """
-
-        self.data = read_file(fin, sep, line_terminator)
-        self.source = (read_file, fin, sep, line_terminator)
+        self.data = source.read()
+        self.source = source
 
         return self
 
