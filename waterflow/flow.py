@@ -61,7 +61,9 @@ class Flow(object):
         f               (function) -- function with signature a, b => value
         """
 
-        return reduce(f, self.flow().data)
+        self.chain += [Action('FLOW::REDUCE', f)]
+
+        return self
 
     def eval(self):
         """Evaluate dataset
@@ -69,7 +71,7 @@ class Flow(object):
         Apply all successive transformations and return resulting dataset
         """
 
-        return [_ for _ in self.flow().data]
+        return [_ for _ in self.run().data]
 
     def batch(self, size):
         """Evaluate dataset
@@ -80,10 +82,11 @@ class Flow(object):
         size            (int) -- size of slice
         """
 
-        return list(itertools.islice(self.flow().data, size))
+        return list(itertools.islice(self.run().data, size))
 
     def apply_action(self, data, action):
-        """Compose successive generators from ordered map and filter transformation
+        """Compose successive generators
+        from ordered map and filter transformation
         """
 
         if action.type == 'FLOW::MAP':
@@ -106,10 +109,13 @@ class Flow(object):
                 data = self.apply_action(data, a)
             return data
 
+        elif action.type == 'FLOW::REDUCE':
+            return reduce(action.f, data)
+
         else:
             return data
 
-    def flow(self):
+    def run(self):
         """Compose generator from successive registered actions"""
 
         for a in self.chain:
@@ -134,9 +140,6 @@ class Flow(object):
         """
 
         self.chain += [Action('FLOW::SPLIT', (rate, on))]
-        # self.map(lambda x: x + [
-        #     self.random_state.choice(['left', 'right'], p=[rate, 1.0 - rate])
-        # ]).filter(lambda x: x[-1] == on).map(lambda x: x[:-1])
 
         return self
 
