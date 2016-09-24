@@ -176,10 +176,10 @@ class Flow(object):
         """
 
         if action.type == 'FLOW::MAP':
-            return (action.f(_) for _ in data)
+            return (action.payload(_) for _ in data)
 
         elif action.type == 'FLOW::FILTER':
-            return (_ for _ in data if action.f(_))
+            return (_ for _ in data if action.payload(_))
 
         elif action.type == 'FLOW::SPLIT':
             for a in [Action(
@@ -187,16 +187,17 @@ class Flow(object):
                 lambda x: x + [
                     self.random_state.choice(
                         ['left', 'right'],
-                        p=[action.f[0], 1.0 - action.f[0]]
+                        p=[action.payload[0], 1.0 - action.payload[0]]
                     )
-                ]), Action('FLOW::FILTER', lambda x: x[-1] == action.f[1]),
+                ]),
+                Action('FLOW::FILTER', lambda x: x[-1] == action.payload[1]),
                 Action('FLOW::MAP', lambda x: x[:-1])
             ]:
                 data = self.apply_action(data, a)
             return data
 
         elif action.type == 'FLOW::REDUCE':
-            return [reduce(action.f, data)]
+            return [reduce(action.payload, data)]
 
         else:
             return data

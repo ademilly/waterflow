@@ -5,10 +5,10 @@
 
 class Action(object):
 
-    def __init__(self, action_type, action_function):
+    def __init__(self, action_type, action_payload):
 
         self.type = action_type
-        self.f = action_function
+        self.payload = action_payload
 
     def __repr__(self):
 
