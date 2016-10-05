@@ -65,15 +65,15 @@ class Flow(object):
 
         return self
 
-    def split(self, rate=0.5, on='left'):
-        """Split data long rate and select one part
+    def split(self, n, which):
+        """Split data in n parts and select which part
 
         Keyword arguments:
-        rate    (float) -- number between 0 and 1 splitting data
-        on      ('left' or 'right') -- choose which part of the split to take
+        n               (int) -- number of parts
+        which           (int) -- index of the selected part [0 ; n-1]
         """
 
-        self.chain += [Action('FLOW::SPLIT', (rate, on))]
+        self.chain += [Action('FLOW::SPLIT', (n, which))]
 
         return self
 
@@ -176,8 +176,7 @@ class Flow(object):
                 'FLOW::MAP',
                 lambda x: x + [
                     self.random_state.choice(
-                        ['left', 'right'],
-                        p=[action.payload[0], 1.0 - action.payload[0]]
+                        range(action.payload[0])
                     )
                 ]),
                 Action('FLOW::FILTER', lambda x: x[-1] == action.payload[1]),
