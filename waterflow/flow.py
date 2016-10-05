@@ -134,8 +134,8 @@ class Flow(object):
         self.header = names
         return self
 
-    def register_clf(self, ml):
-        """Register classifier from another flow"""
+    def register_ml(self, ml):
+        """Register a new ML object in flow"""
 
         self.clfs[
             ml.meta['name']
@@ -143,23 +143,13 @@ class Flow(object):
 
         return self
 
-    def register_ml(self, ml):
-        """Register a new ML object in flow"""
-
-        self.clfs[
-            ml.meta['name']
-        ] = ml
-
-        return self
-
-    def fit_with(self, classifier, name='', target=''):
+    def fit_with(self, name='', target=''):
         """Fit classifier to data"""
 
         X, y = self.tensorize(target)
-        clf = ML(classifier, name)
+        self.clfs[name].fit(X, y)
 
-        clf.fit(X, y)
-        return self.register_ml(clf)
+        return self
 
     def score_with(self, name, target, metric_function, metric_name):
         """Score data with clf named name using metric"""
