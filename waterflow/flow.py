@@ -143,7 +143,7 @@ class Flow(object):
 
         return self
 
-    def fit_with(self, name='', target=''):
+    def fit_with(self, name, target):
         """Fit classifier to data"""
 
         X, y = self.tensorize(target)
