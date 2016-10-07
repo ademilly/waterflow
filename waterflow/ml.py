@@ -36,6 +36,10 @@ class ML(dict):
         self.meta['probabilities'] = self.clf.predict_proba(X)
         return self
 
+    def transform(self, x):
+
+        return list(self.clf.predict_proba([x])[0])
+
     def metric(self, X, y, function, name):
         """Evaluate metric name from X and y with function
 

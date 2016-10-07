@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from flow import Flow
+from source import Source
 
 
 class TestFlow:
@@ -17,7 +18,7 @@ class TestFlow:
     def test_filter(self, string_dataset):
         """Test filter registering"""
 
-        flow = Flow().from_file(string_dataset.open()).filter(
+        flow = Flow().from_source(Source(fin=string_dataset.open())).filter(
             lambda x: 'line' not in x
         )
 
@@ -27,7 +28,7 @@ class TestFlow:
     def test_map(self, numeric_dataset):
         """Test map registering"""
 
-        flow = Flow().from_file(numeric_dataset.open()).map(
+        flow = Flow().from_source(Source(fin=numeric_dataset.open())).map(
             lambda x: [float(_) for _ in x]
         ).map(
             lambda x: [2 * _ for _ in x]
@@ -39,32 +40,37 @@ class TestFlow:
     def test_reduce(self, numeric_dataset):
         """Test reduce"""
 
-        flow = Flow().from_file(numeric_dataset.open()).map(
+        flow = Flow().from_source(Source(fin=numeric_dataset.open())).map(
             lambda x: [float(_) for _ in x]
         ).map(lambda x: sum(x))
 
-        assert flow.reduce(lambda a, b: a + b) == 145
+        assert flow.reduce(lambda a, b: a + b).eval() == [145]
 
     def test_reload(self, numeric_dataset):
         """Test reloading"""
 
-        flow = Flow().from_file(numeric_dataset.open()).map(lambda x: 1)
+        flow = Flow().from_source(Source(fin=numeric_dataset.open())).map(
+            lambda x: 1
+        )
 
-        assert flow.reduce(lambda a, b: a + b) == 10
-        assert flow.reload().reduce(lambda a, b: a + b) == 10
+        assert flow.reduce(lambda a, b: a + b).eval() == [10]
+        assert flow.reload().reduce(lambda a, b: a + b).eval() == [10]
 
     def test_split_train_test(self, numeric_dataset):
         """Test split"""
 
-        split_rate = 0.3
+        n_split = 2
         flow = Flow(seed=42)
 
-        flow = flow.from_file(numeric_dataset.open()).map(
+        flow = flow.from_source(Source(fin=numeric_dataset.open())).map(
             lambda x: [float(_) for _ in x]
         )
 
-        flow_left = Flow(flow=flow).split(split_rate, on='left')
-        flow_right = Flow(flow=flow).split(split_rate, on='right')
+        flow_left = Flow(flow=flow).split(n_split, 0)
+        flow_right = Flow(flow=flow).split(n_split, 1)
 
-        assert flow_left.map(lambda x: 1).reduce(lambda a, b: a + b) == 3
-        assert flow_right.map(lambda x: 1).reduce(lambda a, b: a + b) == 7
+        assert sum(flow_left.map(lambda x: 1).reduce(
+            lambda a, b: a + b
+        ).eval() + flow_right.map(lambda x: 1).reduce(
+            lambda a, b: a + b
+        ).eval()) == 10

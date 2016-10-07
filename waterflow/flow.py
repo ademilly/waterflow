@@ -8,42 +8,12 @@ from ml import ML
 from action import Action
 
 
-def read_csv(path, sep, line_terminator):
-    """Yield a value from a csv file on disk
-
-    Keyword arguments:
-    path            (string) -- path to file
-    sep             (string) -- separator substring
-    line_terminator (string) -- line terminator substring
-    """
-
-    with open(path) as fin:
-
-        for line in fin:
-            yield line.replace('"', '').replace(line_terminator, '').split(sep)
-
-
-def read_file(fin, sep, line_terminator):
-    """Yield a value from a csv file in memory
-
-    Keyword arguments:
-    path            (string) -- path to file
-    sep             (string) -- separator substring
-    line_terminator (string) -- line terminator substring
-    """
-
-    fin.seek(0)
-
-    for line in fin:
-        yield line.replace('"', '').replace(line_terminator, '').split(sep)
-
-
 class Flow(object):
 
     def __init__(self, seed=1, flow=None):
         """Init Flow object"""
 
-        self.data = None if flow is None else flow.regenerate_generator()
+        self.data = None if flow is None else flow.source.read()
         self.source = None if flow is None else flow.source
         self.chain = [] if flow is None else list(flow.chain)
 
@@ -54,31 +24,11 @@ class Flow(object):
 
         self.random_state = numpy.random.RandomState(self.seed)
 
-    def from_csv(self, path, sep=',', line_terminator='\n'):
-        """Hook Flow to disk csv source
+    def from_source(self, source):
+        """Set data source"""
 
-        Keyword arguments:
-        path            (string) -- path to file
-        sep             (string) -- separator substring
-        line_terminator (string) -- line terminator substring
-        """
-
-        self.data = read_csv(path, sep, line_terminator)
-        self.source = (read_csv, path, sep, line_terminator)
-
-        return self
-
-    def from_file(self, fin, sep=',', line_terminator='\n'):
-        """Hook Flow to memory csv source
-
-        Keyword arguments:
-        path            (string) -- path to file
-        sep             (string) -- separator substring
-        line_terminator (string) -- line terminator substring
-        """
-
-        self.data = read_file(fin, sep, line_terminator)
-        self.source = (read_file, fin, sep, line_terminator)
+        self.data = source.read()
+        self.source = source
 
         return self
 
@@ -111,7 +61,21 @@ class Flow(object):
         f               (function) -- function with signature a, b => value
         """
 
-        return reduce(f, self.flow().data)
+        self.chain += [Action('FLOW::REDUCE', f)]
+
+        return self
+
+    def split(self, n, which):
+        """Split data in n parts and select which part
+
+        Keyword arguments:
+        n               (int) -- number of parts
+        which           (int) -- index of the selected part [0 ; n-1]
+        """
+
+        self.chain += [Action('FLOW::SPLIT', (n, which))]
+
+        return self
 
     def eval(self):
         """Evaluate dataset
@@ -119,7 +83,7 @@ class Flow(object):
         Apply all successive transformations and return resulting dataset
         """
 
-        return [_ for _ in self.flow().data]
+        return [_ for _ in self.run().data]
 
     def batch(self, size):
         """Evaluate dataset
@@ -130,68 +94,13 @@ class Flow(object):
         size            (int) -- size of slice
         """
 
-        return list(itertools.islice(self.flow().data, size))
-
-    def apply_action(self, data, action):
-        """Compose successive generators from ordered map and filter transformation
-        """
-
-        if action.type == 'FLOW::MAP':
-            return (action.f(_) for _ in data)
-
-        elif action.type == 'FLOW::FILTER':
-            return (_ for _ in data if action.f(_))
-
-        elif action.type == 'FLOW::SPLIT':
-            for a in [Action(
-                'FLOW::MAP',
-                lambda x: x + [
-                    self.random_state.choice(
-                        ['left', 'right'],
-                        p=[action.f[0], 1.0 - action.f[0]]
-                    )
-                ]), Action('FLOW::FILTER', lambda x: x[-1] == action.f[1]),
-                Action('FLOW::MAP', lambda x: x[:-1])
-            ]:
-                data = self.apply_action(data, a)
-            return data
-
-        else:
-            return data
-
-    def flow(self):
-        """Compose generator from successive registered actions"""
-
-        for a in self.chain:
-            self.data = self.apply_action(self.data, a)
-
-        return self
-
-    def regenerate_generator(self):
-        """Renew the self.data generator"""
-
-        return self.source[0](*self.source[1:])
+        return list(itertools.islice(self.run().data, size))
 
     def reload(self):
         """Renew self.data and self.random_state"""
 
         self.random_state = numpy.random.RandomState(self.seed)
-        self.data = self.regenerate_generator()
-
-        return self
-
-    def split(self, rate=0.5, on='left'):
-        """Split data long rate and select one part
-
-        Keyword arguments:
-        rate    (float) -- number between 0 and 1 splitting data
-        on      ('left' or 'right') -- choose which part of the split to take
-        """
-
-        self.chain += [Action('FLOW::SPLIT', (rate, on))]
-        # self.map(lambda x: x + [
-        #     self.random_state.choice(['left', 'right'], p=[rate, 1.0 - rate])
-        # ]).filter(lambda x: x[-1] == on).map(lambda x: x[:-1])
+        self.data = self.source.read()
 
         return self
 
@@ -225,8 +134,8 @@ class Flow(object):
         self.header = names
         return self
 
-    def register_clf(self, ml):
-        """Register classifier from another flow"""
+    def register_ml(self, ml):
+        """Register a new ML object in flow"""
 
         self.clfs[
             ml.meta['name']
@@ -234,23 +143,13 @@ class Flow(object):
 
         return self
 
-    def register_ml(self, ml):
-        """Register a new ML object in flow"""
-
-        self.clfs[
-            ml.meta['name']
-        ] = ml
-
-        return self
-
-    def fit_with(self, classifier, name='', target=''):
+    def fit_with(self, name, target):
         """Fit classifier to data"""
 
         X, y = self.tensorize(target)
-        clf = ML(classifier, name)
+        self.clfs[name].fit(X, y)
 
-        clf.fit(X, y)
-        return self.register_ml(clf)
+        return self
 
     def score_with(self, name, target, metric_function, metric_name):
         """Score data with clf named name using metric"""
@@ -258,6 +157,45 @@ class Flow(object):
         X, y = self.tensorize(target)
 
         self.clfs[name].metric(X, y, metric_function, metric_name)
+
+        return self
+
+    def apply_action(self, data, action):
+        """Compose successive generators
+        from ordered map and filter transformation
+        """
+
+        if action.type == 'FLOW::MAP':
+            return (action.payload(_) for _ in data)
+
+        elif action.type == 'FLOW::FILTER':
+            return (_ for _ in data if action.payload(_))
+
+        elif action.type == 'FLOW::SPLIT':
+            for a in [Action(
+                'FLOW::MAP',
+                lambda x: x + [
+                    self.random_state.choice(
+                        range(action.payload[0])
+                    )
+                ]),
+                Action('FLOW::FILTER', lambda x: x[-1] == action.payload[1]),
+                Action('FLOW::MAP', lambda x: x[:-1])
+            ]:
+                data = self.apply_action(data, a)
+            return data
+
+        elif action.type == 'FLOW::REDUCE':
+            return [reduce(action.payload, data)]
+
+        else:
+            return data
+
+    def run(self):
+        """Compose generator from successive registered actions"""
+
+        for a in self.chain:
+            self.data = self.apply_action(self.data, a)
 
         return self
 
