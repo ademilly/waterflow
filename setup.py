@@ -18,5 +18,6 @@ setup(
     classifiers=[],
     install_requires=[
         'cloudpickle',
+        'numpy',
     ],
 )
