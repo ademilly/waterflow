@@ -4,7 +4,7 @@
 class Classifier(dict):
 
     def __init__(self, classifier=None, name=''):
-        """Init ML object
+        """Init Classifier object
 
         Keyword arguments:
         classifier  (object) -- sklearn-like classifier
