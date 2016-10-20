@@ -4,7 +4,6 @@ import itertools
 import numpy
 import cloudpickle as pickle
 
-from ml import ML
 from action import Action
 
 
@@ -17,7 +16,6 @@ class Flow(object):
         self.source = None if flow is None else flow.source
         self.chain = [] if flow is None else list(flow.chain)
 
-        self.header = [] if flow is None else list(flow.header)
         self.clfs = {} if flow is None else dict(flow.clfs)
 
         self.seed = seed if flow is None else flow.seed
@@ -111,54 +109,22 @@ class Flow(object):
             str(_) for _ in self.eval()
         ]) if self.data is not None else 'None'
 
-    def tensorize(self, target=''):
+    def tensorize(self, target_col=-1):
         """Return data and target column if the latter is given"""
 
         M = self.eval()
-        if target != '':
+        if target_col != -1:
             return [
-                [x for i, x in enumerate(_) if i != self.header.index(target)]
+                [x for i, x in enumerate(_) if i != target_col]
                 for _ in M
             ], [
                 [
                     x for i, x in enumerate(_)
-                    if i == self.header.index(target)
+                    if i == target_col
                 ][0] for _ in M
             ]
         else:
             return M
-
-    def header_is(self, names=[]):
-        """Set header"""
-
-        self.header = names
-        return self
-
-    def register_ml(self, ml):
-        """Register a new ML object in flow"""
-
-        self.clfs[
-            ml.meta['name']
-        ] = ML(classifier=ml.clf, name=ml.meta['name'])
-
-        return self
-
-    def fit_with(self, name, target):
-        """Fit classifier to data"""
-
-        X, y = self.tensorize(target)
-        self.clfs[name].fit(X, y)
-
-        return self
-
-    def score_with(self, name, target, metric_function, metric_name):
-        """Score data with clf named name using metric"""
-
-        X, y = self.tensorize(target)
-
-        self.clfs[name].metric(X, y, metric_function, metric_name)
-
-        return self
 
     def apply_action(self, data, action):
         """Compose successive generators
