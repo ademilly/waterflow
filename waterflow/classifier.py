@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-class ML(dict):
+class Classifier(dict):
 
     def __init__(self, classifier=None, name=''):
         """Init ML object

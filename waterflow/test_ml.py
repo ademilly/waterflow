@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from ml import ML
+from ml import Classifier
 
 
 class TestML:
 
     def test_init(self):
 
-        ml = ML()
+        clf = Classifier()
 
-        assert hasattr(ml, 'clf')
-        assert ml.clf is None
-        assert ml.meta == {'name': ''}
+        assert hasattr(clf, 'clf')
+        assert clf.clf is None
+        assert clf.meta == {'name': ''}
